@@ -44,7 +44,6 @@ def turn_count(board)
 end
 
 def current_player(board)
-  #if the turn count is an even number, that means O just went, so the next/current player is X
   num_turns = turn_count(board)
   if num_turns % 2 == 0
     player = "X"
@@ -126,8 +125,8 @@ def play(board)
   end
 
   if won?(board)
-    puts "Congratulations #{winner(board)}!"
+    return "Congratulations #{winner(board)}!"
   elsif draw?(board)
-    puts "Cats Game!"
+    return "Cats Game!"
   end
 end
