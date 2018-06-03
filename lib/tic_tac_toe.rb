@@ -19,115 +19,113 @@ def input_to_index(user_input)
   user_input.to_i - 1
 end
 
-def move(board, index, player = "X")
-  board[index] = player
+def move(board, index, current_player)
+  board[index] = current_player
 end
 
-def position_taken?(board, location)
-  board[location] != " " && board[location] != ""
+def position_taken?(board, index)
+  !(board[index].nil? || board[index] == " ")
 end
 
 def valid_move?(board, index)
   index.between?(0,8) && !position_taken?(board, index)
 end
 
-def turn(board)
-  puts "Please enter 1-9:"
-  user_input = gets.strip
-  index = input_to_index(user_input)
-  player = "X"
+def turn_count(board)
+  turn = 0
+  board.each do |index|
+    if index == "X" || index == "O"
+      turn += 1
+    end
+  end
+  return turn
+end
 
-  if valid_move?(board,index)
-    puts "valid move"
-    move(board, index, player)
+def current_player(board)
+  #if the turn count is an even number, that means O just went, so the next/current player is X
+  num_turns = turn_count(board)
+  if num_turns % 2 == 0
+    player = "X"
+  else
+    player = "O"
+  end
+  return player
+end
+
+def turn(board)
+  puts "Please choose a number 1-9:"
+  user_input = gets.chomp
+  index = input_to_index(user_input)
+  if valid_move?(board, index)
+    player_token = current_player(board)
+    move(board, index, player_token)
     display_board(board)
-   else
-    puts "try again"
+  else
     turn(board)
   end
 end
 
-def turn_count(board)
-counter = 0
-board.each do |occupied_positions|
- if occupied_positions == "X" || occupied_positions == "O"
-      counter +=1
-   end
- end
- return counter
+def won?(board)
+  WIN_COMBINATIONS.each {|win_combo|
+    index_0 = win_combo[0]
+    index_1 = win_combo[1]
+    index_2 = win_combo[2]
+
+    position_1 = board[index_0]
+    position_2 = board[index_1]
+    position_3 = board[index_2]
+
+    if position_1 == "X" && position_2 == "X" && position_3 == "X"
+      return win_combo
+    elsif position_1 == "O" && position_2 == "O" && position_3 == "O"
+      return win_combo
+    end
+  }
+  return false
 end
 
-def current_player(board)
-  if turn_count(board) % 2 == 0
-   current_player = "X"
+def full?(board)
+  board.all? {|index| index == "X" || index == "O"}
+end
+
+def draw?(board)
+  if !won?(board) && full?(board)
+    return true
   else
-   current_player = "O"
-  end
-  return current_player
- end
-
- def won?(board)
-   WIN_COMBINATIONS.each {|win_combo|
-     index_0 = win_combo[0]
-     index_1 = win_combo[1]
-     index_2 = win_combo[2]
-
-     position_1 = board[index_0]
-     position_2 = board[index_1]
-     position_3 = board[index_2]
-
-     if position_1 == "X" && position_2 == "X" && position_3 == "X"
-       return win_combo
-     elsif position_1 == "O" && position_2 == "O" && position_3 == "O"
-       return win_combo
-     end
-   }
-   return false
- end
-
- def full?(board)
-   if board.include?(' ') || board.include?('')
     return false
- else
+  end
+end
+
+def over?(board)
+  if won?(board) || draw?(board)
     return true
-   end
- end
+  else
+    return false
+  end
+end
 
- def draw?(board)
-   if !won?(board) && full?(board)
-    return true
-   end
- end
+def winner (board)
+  index = []
+  index = won?(board)
+  if index == false
+    return nil
+  else
+    if board[index[0]] == "X"
+      return "X"
+    else
+      return "O"
+    end
+  end
+end
 
- def over?(board)
-   if won?(board) || draw?(board) || full?(board)
-     return true
-   else
-     return false
-   end
- end
+def play(board)
+  until over?(board) == true
+    turn(board)
+  end
 
- def winner(board)
-   if !won?(board)
-     return nil
-   else WIN_COMBINATIONS.each do |win_combo|
-     if check_win_combination?(board, "X", win_combo)
-       return "X"
-     elsif check_win_combination?(board, "O", win_combo)
-       return "O"
-     end
-   end
- end
- end
-
- def play(board)
-   until over?(board) == true
-     turn(board)
-   end
-
-   if won?(board)
-     puts "Congratulations #{winner(board)}!"
-   elsif draw?(board)
-     puts "Cats Game!"
-   end
- end
+  if won?(board)
+    puts "Congratulations #{winner(board)}!"
+  elsif draw?(board)
+    puts "Cats Game!"
+  end
+end
